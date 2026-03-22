@@ -45,11 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullName = document.getElementById('user-name').value.trim();
             const { error } = await window._supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
             
-            // FIX 1: Added success feedback for signup
+            // CHANGED: Custom success text and auto-redirect to login form
             if (error) {
                 alert("Signup Error: " + error.message);
             } else {
-                alert("Signup successful! Please check your email inbox (and spam folder) for the confirmation link.");
+                alert("Success, you may log in now.");
+                // Automatically switch back to the login view for them
+                toggleBtn.click(); 
             }
         } else {
             const { error } = await window._supabase.auth.signInWithPassword({ email, password });
