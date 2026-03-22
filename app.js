@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullName = document.getElementById('user-name').value.trim();
             const { error } = await window._supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
             
-            // CHANGED: Custom success text and auto-redirect to login form
+            // Success text change for disabled email verification
             if (error) {
                 alert("Signup Error: " + error.message);
             } else {
@@ -76,7 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
             forgotPasswordBtn.innerText = 'SENDING LINK...';
             forgotPasswordBtn.disabled = true;
 
-            const { error } = await window._supabase.auth.resetPasswordForEmail(email);
+            // IMPROVEMENT: Added redirectTo to ensure GitHub Pages sub-folder compatibility
+            const { error } = await window._supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: 'https://mjmelon.github.io/MJM-AI/'
+            });
             
             if (error) {
                 alert("Error: " + error.message);
