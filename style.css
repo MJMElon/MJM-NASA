@@ -162,7 +162,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- NEW: AI Markdown Content Styling --- */
+/* --- AI Markdown Content Styling --- */
 .ai-markdown-content { font-size: 0.875rem; line-height: 1.6; }
 .ai-markdown-content h1, .ai-markdown-content h2, .ai-markdown-content h3 { font-weight: 900; color: #065f46; margin-top: 1.5rem; margin-bottom: 0.75rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
 .ai-markdown-content p { margin-bottom: 1rem; }
@@ -175,3 +175,14 @@ body {
 .ai-markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.75rem; }
 .ai-markdown-content th, .ai-markdown-content td { border: 1px solid #e2e8f0; padding: 0.5rem; text-align: left; }
 .ai-markdown-content th { background-color: #f8fafc; font-weight: bold; }
+
+/* --- Custom Scrollbar for Mobile Slider --- */
+.custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Hide slider scrollbar on mobile for cleaner swiping */
+@media (max-width: 768px) {
+    .custom-scrollbar::-webkit-scrollbar { display: none; }
+}
