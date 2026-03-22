@@ -218,18 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatBox = document.getElementById('chat-box');
     const logoutBtn = document.getElementById('logout-btn');
 
-    // --- Logout Memory Lock ---
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            window.__isLoggingOut = true; // Tell system to stop auto-saving
-            localStorage.removeItem('mjm_chat_history'); // Erase history instantly
+            window.__isLoggingOut = true; 
+            localStorage.removeItem('mjm_chat_history'); 
         });
     }
 
     const saveChatHistory = () => {
-        // CRITICAL FIX: Block the system from saving memory if user is actively logging out
         if(window.__isLoggingOut) return; 
-        
         if(chatBox && chatBox.innerHTML.trim() !== '') {
             localStorage.setItem('mjm_chat_history', chatBox.innerHTML);
         }
@@ -252,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, { childList: true, subtree: true });
 
     const chatInputContainer = chatInput.parentElement;
-    
     const refreshBtn = document.createElement('button');
     refreshBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
     refreshBtn.title = "Cancel stuck request and regenerate";
@@ -291,20 +287,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!userText) return;
 
         window.lastUserText = userText; 
-        chatBox.innerHTML += `<div class="bg-emerald-50 p-4 rounded-2xl rounded-tr-none border border-emerald-100 ml-auto max-w-[80%] text-right font-semibold text-emerald-900 mb-4">${userText}</div>`;
+        // CHANGED: Added md:max-w-[80%] for responsiveness
+        chatBox.innerHTML += `<div class="bg-emerald-50 p-4 rounded-2xl rounded-tr-none border border-emerald-100 ml-auto max-w-[85%] md:max-w-[80%] text-right font-semibold text-emerald-900 mb-4">${userText}</div>`;
         chatInput.value = '';
         saveChatHistory(); 
         
         const loadingId = 'loading-' + Date.now();
         
         chatBox.innerHTML += `
-            <div id="${loadingId}" class="bg-white p-5 rounded-2xl rounded-tl-none border border-slate-200 max-w-[85%] shadow-sm mb-4 transition-all">
+            <div id="${loadingId}" class="bg-white p-4 md:p-5 rounded-2xl rounded-tl-none border border-slate-200 max-w-[95%] md:max-w-[85%] shadow-sm mb-4 transition-all">
                 <div class="flex justify-between items-center text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-3">
                     <span id="${loadingId}-status" class="flex items-center gap-2">
                         <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> 
                         <span>Initializing Uplink...</span>
                     </span>
-                    <span id="${loadingId}-time" class="text-slate-400 bg-slate-100 px-2 py-1 rounded-md">EST: 20s</span>
+                    <span id="${loadingId}-time" class="text-slate-400 bg-slate-100 px-2 py-1 rounded-md hidden md:inline-block">EST: 20s</span>
                 </div>
                 <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200 relative">
                     <div id="${loadingId}-bar" class="absolute top-0 left-0 bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
@@ -339,8 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const textLower = userText.toLowerCase();
             const isVisualRequest = textLower.match(/(dashboard|chart|visual|graph|draw|generate|picture|metric)/);
-            
-            // LOGIC FIX: Check if we have files available in the active UI
             const hasFiles = window.currentFilesForAI && window.currentFilesForAI.length > 0;
 
             let parts = [];
@@ -350,7 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Architecting Visuals...`;
                 parts.push({ text: `System: You are Elon, MJM-AI analyst. Build visual widgets. CRITICAL RULES: 1. You MUST separate EVERY SINGLE distinct chart, graph, or metric with the exact delimiter "||WIDGET||". 1 Metric/Chart = 1 Sticker. 2. NO <script> tags, Chart.js, or external JS libraries allowed. 3. Draw all complex charts using ONLY pure HTML, Tailwind CSS, and inline SVG paths. Make sure containers have concrete heights. User Request: ${userText}` });
             } else if (hasFiles) {
-                // LOGIC FIX: Always prioritize telling the AI to read the files if they are there
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Analyzing Data Files...`;
                 parts.push({ text: `System: You are Elon, MJM-AI analyst. You have been provided with data files from the user's bookshelf. ALWAYS read and use these files to answer the user's question first. If the answer is not in the files, use your general knowledge. Structure your response cleanly using Markdown format (bolding, headers). User Request: ${userText}` });
             } else {
@@ -358,9 +352,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 parts.push({ text: `System: You are Elon, MJM-AI operations chatbot. Structure your response cleanly using Markdown format. User Request: ${userText}` });
             }
 
-            // Always attach the actual files if they exist in the UI
+            // --- MASSIVE SPEED FIX: Promise.all replaces the slow Sequential For-Loop ---
             if (hasFiles || isVisualRequest) {
-                for (const fileObj of window.currentFilesForAI) {
+                const filePromises = window.currentFilesForAI.map(async (fileObj) => {
                     const { data, error } = await window._supabase.storage.from('operation-reports').download(fileObj.name);
                     if (!error && data) {
                         const b64 = await new Promise(r => {
@@ -368,9 +362,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             rd.onloadend = () => r(rd.result.split(',')[1]);
                             rd.readAsDataURL(data);
                         });
-                        parts.push({ inline_data: { mime_type: data.type || "image/jpeg", data: b64 } });
+                        return { inline_data: { mime_type: data.type || "image/jpeg", data: b64 } };
                     }
-                }
+                    return null;
+                });
+
+                const downloadedFiles = await Promise.all(filePromises);
+                downloadedFiles.forEach(filePart => {
+                    if (filePart) parts.push(filePart);
+                });
             }
 
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${GEMINI_API_KEY}`, {
@@ -391,13 +391,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (isVisualRequest) {
                     const visuals = aiResponse.split(/\|\|WIDGET\|\|/g).filter(v => v.trim().length > 0);
-                    let outputHTML = `<div class="w-full flex flex-col gap-4 mb-4 max-w-[90%]">`;
+                    let outputHTML = `<div class="w-full flex flex-col gap-4 mb-4 max-w-[100%] md:max-w-[90%]">`;
                     visuals.forEach((visHTML, index) => {
                         outputHTML += `
                             <div class="ai-visual-container bg-white p-4 rounded-2xl ${index === 0 ? 'rounded-tl-none' : ''} border border-slate-200 shadow-sm relative group transition-all hover:shadow-md">
                                 ${visuals.length > 1 ? `<div class="absolute -top-2 -right-2 bg-slate-800 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-sm z-10 uppercase tracking-widest">Block ${index + 1}</div>` : ''}
                                 <div class="relative rounded-xl border border-slate-100 bg-slate-50 overflow-hidden flex items-center justify-center p-2">
-                                    <div class="visual-content-core relative z-0 w-full">${visHTML}</div>
+                                    <div class="visual-content-core relative z-0 w-full overflow-x-auto">${visHTML}</div>
                                 </div>
                                 <div class="flex justify-between items-center mt-3 px-1 border-t border-slate-100 pt-3">
                                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Analytics Widget</p>
@@ -415,9 +415,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     outputHTML += `</div>`;
                     chatBox.innerHTML += outputHTML;
                 } else {
-                    // PARSER ADDED: Uses marked.js to convert asterisks to neat HTML exactly like Gemini
-                    const parsedMarkdown = typeof marked !== 'undefined' ? marked.parse(aiResponse) : aiResponse.replace(/\n/g, '<br>');
-                    chatBox.innerHTML += `<div class="bg-white/80 p-5 rounded-2xl rounded-tl-none border border-slate-200 max-w-[90%] text-slate-800 shadow-sm mb-4 ai-markdown-content">${parsedMarkdown}</div>`;
+                    // CHANGED: Added max-w responsive scaling and overflow-x-auto for tables on mobile
+                    chatBox.innerHTML += `<div class="bg-white/80 p-4 md:p-5 rounded-2xl rounded-tl-none border border-slate-200 max-w-[95%] md:max-w-[90%] text-slate-800 shadow-sm mb-4 overflow-x-auto">${aiResponse.replace(/\n/g, '<br>')}</div>`;
                 }
             }
         } catch (err) {
