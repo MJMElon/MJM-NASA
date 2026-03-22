@@ -3,247 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MJM - NASA | Operations Hub</title>
-
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1b4332">
-
+    <title>MJM - AI | Operations Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f0f4f1;
-            overflow-x: hidden;
-        }
-
-        .bg-pattern {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.08;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 10c0 5-5 10-5 10s5 5 5 10c0-5 5-10 5-10s-5-5-5-10z' fill='%231b4332'/%3E%3Ccircle cx='50' cy='50' r='6' fill='%232d6a4f'/%3E%3Cpath d='M60 15l4 8h-8z' fill='%231b4332'/%3E%3C/svg%3E");
-            background-size: 120px 120px;
-            animation: moveBg 100s linear infinite;
-        }
-
-        @keyframes moveBg {
-            from { background-position: 0 0; }
-            to { background-position: 1000px 1000px; }
-        }
-
-        .nasa-dark-green { color: #1b4332; }
-        .nasa-accent-bg { background-color: #a7c957; }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
-        }
-
-        .btn-primary {
-            background: #1b4332;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: #2d6a4f;
-            transform: translateY(-1px);
-        }
-
-        .input-style {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="bg-pattern"></div>
+    
+    <div class="fibre-optics">
+        <div class="spark h-1"></div>
+        <div class="spark h-2"></div>
+        <div class="spark h-3"></div>
+        <div class="spark v-1"></div>
+        <div class="spark v-2"></div>
+    </div>
 
-    <div id="auth-section" class="flex items-center justify-center min-h-screen p-4">
-        <div class="glass-panel p-10 rounded-[3rem] w-full max-w-md text-center">
-            
+    <div id="auth-section" class="flex items-center justify-center min-h-screen p-4 relative">
+        <div class="glass-panel p-10 rounded-[3rem] w-full max-w-md text-center border border-slate-200">
             <div class="flex flex-col items-center mb-8">
-                <div class="flex items-baseline italic font-black text-4xl nasa-dark-green">
-                    <span>MJM</span>
-                    <span class="ml-2 px-2 py-0.5 text-[14px] nasa-accent-bg text-[#1b4332] not-italic align-middle rounded-sm">NASA</span>
+                
+                <div class="flex items-center font-black text-4xl text-[#1b4332] tracking-tight mb-2">
+                    <span class="italic">MJM</span>
+                    <div class="ml-3 relative group">
+                        <div class="absolute -inset-1 bg-emerald-400 rounded-lg blur opacity-40 animate-pulse"></div>
+                        <span class="relative px-3 py-1 text-[16px] bg-emerald-500 text-white rounded border border-emerald-300 uppercase tracking-[0.3em] font-bold shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-1.5">
+                            <svg class="w-4 h-4 animate-[spin_4s_linear_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                            AI
+                        </span>
+                    </div>
                 </div>
-                <div class="h-1 w-8 bg-[#a7c957] rounded-full mt-3"></div>
-                <h2 id="auth-title" class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-4">Operations Login</h2>
-            </div>
 
-            <div id="verify-msg" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl text-green-700 text-sm font-semibold animate-pulse text-center">
-                📧 Update sent! Check your inbox.
+                <h2 id="auth-title" class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-4 min-h-[16px]"></h2>
             </div>
-
-            <div class="space-y-4">
+            
+            <div id="standard-auth-fields" class="space-y-4">
                 <div id="signup-fields" class="hidden space-y-4 text-left">
                     <input type="text" id="user-name" placeholder="Full Name" class="w-full p-4 input-style rounded-2xl outline-none font-semibold">
                 </div>
-                
                 <input type="email" id="email" placeholder="Email Address" class="w-full p-4 input-style rounded-2xl outline-none font-semibold">
                 <input type="password" id="password" placeholder="Password" class="w-full p-4 input-style rounded-2xl outline-none font-semibold">
-                
-                <button id="main-auth-btn" class="w-full btn-primary text-white py-4 rounded-2xl font-bold uppercase tracking-widest shadow-lg">Login</button>
-
+                <button id="main-auth-btn" class="w-full btn-primary text-white py-4 rounded-2xl font-bold uppercase tracking-widest shadow-lg">LOGIN</button>
                 <div id="forgot-password-container" class="text-center">
-                    <button id="forgot-password-btn" class="text-[10px] font-bold text-slate-400 hover:text-emerald-700 uppercase tracking-widest transition-colors">Forgot Password?</button>
+                    <button id="forgot-password-btn" class="text-[10px] font-bold text-slate-400 hover:text-emerald-700 uppercase tracking-widest">Forgot Password?</button>
                 </div>
-
-                <button id="toggle-auth-btn" class="w-full text-slate-500 font-bold mt-2 text-[10px] uppercase tracking-widest hover:text-green-700">Create Account</button>
+                <button id="toggle-auth-btn" class="w-full text-slate-500 font-bold mt-2 text-[10px] uppercase tracking-widest">Create Account</button>
             </div>
+
+            <div id="recovery-auth-fields" class="hidden space-y-4">
+                <div class="text-center text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">Create New Password</div>
+                <input type="password" id="new-password" placeholder="Enter New Password" class="w-full p-4 input-style rounded-2xl outline-none font-semibold">
+                <button id="update-password-btn" class="w-full btn-primary text-white py-4 rounded-2xl font-bold uppercase tracking-widest shadow-lg">Save New Password</button>
+            </div>
+            
+        </div>
+        
+        <div class="absolute bottom-10 left-0 w-full text-center pointer-events-none">
+            <span class="text-[10px] font-bold text-slate-400/50 uppercase tracking-[0.5em]">The future is here</span>
         </div>
     </div>
 
-    <div id="reset-section" class="hidden flex items-center justify-center min-h-screen p-4">
-        <div class="glass-panel p-10 rounded-[3rem] w-full max-w-md text-center">
-            <h2 class="text-xl font-black text-slate-800 uppercase mb-2 text-center">Set New Password</h2>
-            <input type="password" id="new-password" placeholder="Enter New Password" class="w-full p-4 input-style rounded-2xl outline-none font-semibold mb-4 text-center">
-            <button id="update-pass-btn" class="w-full btn-primary text-white py-4 rounded-2xl font-bold uppercase tracking-widest shadow-lg">Update & Login</button>
-        </div>
-    </div>
-
-    <div id="dashboard" class="hidden p-4 md:p-8">
-        <div class="max-w-4xl mx-auto">
-            <div class="flex flex-col items-center mb-10 glass-panel p-8 rounded-[2.5rem] relative">
-                <button id="logout-btn" class="absolute top-6 right-6 text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase tracking-widest bg-white px-5 py-2 rounded-full border border-slate-100 shadow-sm">Sign Out</button>
-                <div class="text-center">
-                    <div class="flex items-center justify-center italic font-black text-3xl nasa-dark-green mb-2">
-                        <span>MJM</span>
-                        <span class="ml-2 px-2 py-0.5 text-[12px] nasa-accent-bg text-[#1b4332] not-italic rounded-sm">NASA</span>
+    <div id="dashboard" class="hidden p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+        <div class="flex flex-col items-center glass-panel p-8 rounded-[2.5rem] relative">
+            <button id="logout-btn" class="absolute top-6 right-6 text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase tracking-widest bg-white px-5 py-2 rounded-full border border-slate-100 shadow-sm z-10">Sign Out</button>
+            <div class="text-center relative z-10">
+                
+                <div class="flex items-center justify-center font-black text-4xl text-[#1b4332] tracking-tight mb-2">
+                    <span class="italic">MJM</span>
+                    <div class="ml-3 relative group">
+                        <div class="absolute -inset-1 bg-emerald-400 rounded-lg blur opacity-40 animate-pulse"></div>
+                        <span class="relative px-3 py-1 text-[16px] bg-emerald-500 text-white rounded border border-emerald-300 uppercase tracking-[0.3em] font-bold shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-1.5">
+                            <svg class="w-4 h-4 animate-[spin_4s_linear_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                            AI
+                        </span>
                     </div>
-                    <p class="text-[14px] font-black text-slate-500 uppercase tracking-[0.3em]">Central Operations Hub</p>
                 </div>
+
+                <p class="text-xl font-black text-emerald-800 uppercase tracking-[0.4em] mt-4 drop-shadow-sm">AI Central Hub</p>
+                <p class="text-[10px] font-bold text-emerald-600/70 uppercase tracking-[0.6em] mt-2 italic flex items-center justify-center gap-3">
+                    <span class="w-6 h-[1px] bg-emerald-600/40"></span>
+                    The future is here
+                    <span class="w-6 h-[1px] bg-emerald-600/40"></span>
+                </p>
             </div>
-            <div class="glass-panel p-8 rounded-[2.5rem] border-l-[12px] border-green-600">
-                <span class="text-xl font-black text-slate-800 uppercase">📈 Operations Data</span>
-                <p class="text-xs text-gray-500 mt-2">Authenticated: Ready for analysis.</p>
+        </div>
+
+        <div id="bookshelf-module"></div>
+
+        <div class="glass-panel rounded-[2.5rem] flex flex-col h-[650px] overflow-hidden border-l-[12px] border-emerald-800">
+            <div class="p-6 border-b bg-white/30 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                    AI Chatbox with Elon 
+                </h3>
+            </div>
+            <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-4 text-sm"></div>
+            <div class="p-4 bg-white/80 border-t flex gap-2">
+                <input id="chat-input" type="text" placeholder="Ask Elon anything..." class="flex-1 p-4 input-style rounded-2xl outline-none text-sm font-semibold">
+                <button id="send-btn" class="btn-primary text-white px-8 rounded-2xl font-bold uppercase text-xs">Send</button>
             </div>
         </div>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://briqzyxfxsvulyizzbiu.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_go1nlzqVr9Q9FHvWXvZduQ_sPLWs2tn';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <div id="company-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-[32px] p-8 w-full max-w-md shadow-2xl border border-slate-200">
+            <h3 class="text-xl font-black text-slate-800 tracking-tight mb-6 uppercase text-center">New Tab shelf</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Tab shelf name</label>
+                    <input type="text" id="new-comp-id" class="w-full mt-1 p-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div class="flex gap-2 pt-4">
+                    <button onclick="closeCompanyModal()" class="flex-1 p-4 rounded-2xl bg-slate-100 text-slate-600 font-bold text-xs uppercase">Cancel</button>
+                    <button onclick="saveCompanyProfile()" class="flex-1 p-4 rounded-2xl bg-slate-900 text-white font-bold text-xs uppercase">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        let isRecovering = false;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const mainBtn = document.getElementById('main-auth-btn');
-            const toggleBtn = document.getElementById('toggle-auth-btn');
-            const forgotBtn = document.getElementById('forgot-password-btn');
-            const signupFields = document.getElementById('signup-fields');
-            const authTitle = document.getElementById('auth-title');
-            const verifyMsg = document.getElementById('verify-msg');
-            const forgotContainer = document.getElementById('forgot-password-container');
-            const updatePassBtn = document.getElementById('update-pass-btn');
-
-            toggleBtn.addEventListener('click', () => {
-                const isCurrentlyLogin = (mainBtn.innerText === 'LOGIN');
-                verifyMsg.classList.add('hidden');
-                if (isCurrentlyLogin) {
-                    signupFields.classList.remove('hidden');
-                    forgotContainer.classList.add('hidden');
-                    mainBtn.innerText = 'SIGN UP';
-                    authTitle.innerText = 'Account Registration';
-                    toggleBtn.innerText = 'Back to Login';
-                } else {
-                    signupFields.classList.add('hidden');
-                    forgotContainer.classList.remove('hidden');
-                    mainBtn.innerText = 'LOGIN';
-                    authTitle.innerText = 'Operations Login';
-                    toggleBtn.innerText = 'Create Account';
-                }
-            });
-
-            forgotBtn.addEventListener('click', async () => {
-                const email = document.getElementById('email').value;
-                if (!email) return alert("Please enter your email address first.");
-                
-                const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.href, 
-                });
-
-                if (error) {
-                    alert("Rate Limit: " + error.message);
-                } else {
-                    verifyMsg.innerText = "📧 Reset link sent! Check your inbox.";
-                    verifyMsg.classList.remove('hidden');
-                }
-            });
-
-            updatePassBtn.addEventListener('click', async () => {
-                const newPassword = document.getElementById('new-password').value;
-                if (!newPassword || newPassword.length < 6) return alert("Password must be at least 6 characters.");
-                
-                const { error } = await _supabase.auth.updateUser({ password: newPassword });
-                
-                if (error) {
-                    alert(error.message);
-                } else {
-                    alert("Success! Password reset. You may now log in.");
-                    await _supabase.auth.signOut();
-                    window.location.href = window.location.origin + window.location.pathname;
-                }
-            });
-
-            mainBtn.addEventListener('click', async () => {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                if (mainBtn.innerText === 'SIGN UP') {
-                    const fullName = document.getElementById('user-name').value;
-                    if(!fullName) return alert("Please enter your name.");
-
-                    // CHECK IF EMAIL EXISTS
-                    const { data: existingUser } = await _supabase.from('profiles').select('email').eq('email', email).single();
-                    if (existingUser) return alert("This email is already registered. Please login instead.");
-
-                    const { data, error } = await _supabase.auth.signUp({ 
-                        email, 
-                        password,
-                        options: { emailRedirectTo: window.location.href }
-                    });
-                    
-                    if (error) return alert(error.message);
-                    if (data.user) {
-                        await _supabase.from('profiles').insert([{ id: data.user.id, full_name: fullName, email: email }]);
-                        verifyMsg.innerText = "📧 Check your email to verify your account!";
-                        verifyMsg.classList.remove('hidden');
-                    }
-                } else {
-                    const { error } = await _supabase.auth.signInWithPassword({ email, password });
-                    if (error) alert("Login Failed: " + error.message);
-                }
-            });
-
-            _supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'PASSWORD_RECOVERY') {
-                    isRecovering = true;
-                    document.getElementById('auth-section').classList.add('hidden');
-                    document.getElementById('reset-section').classList.remove('hidden');
-                } else if (session && !isRecovering) {
-                    document.getElementById('auth-section').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                } else {
-                    document.getElementById('auth-section').classList.remove('hidden');
-                    document.getElementById('dashboard').classList.add('hidden');
-                }
-            });
-
-            document.getElementById('logout-btn').addEventListener('click', async () => {
-                await _supabase.auth.signOut();
-                location.reload();
-            });
-        });
-    </script>
+    <script src="app.js"></script>
+    <script src="bookshelf.js"></script> 
+    <script src="dashboard.js"></script>
+    <script src="pocket.js"></script>
 </body>
 </html>
