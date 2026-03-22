@@ -3,16 +3,16 @@ const initBookshelfUI = () => {
     if (!container) return;
 
     container.innerHTML = `
-        <div class="glass-panel rounded-[2.5rem] overflow-hidden border-l-[12px] border-emerald-900">
-            <div class="w-full p-6 pb-2 flex justify-between items-center">
+        <div class="glass-panel rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border-l-[8px] md:border-l-[12px] border-emerald-900">
+            <div class="w-full p-4 md:p-6 pb-2 flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <span class="text-sm font-black text-slate-800 uppercase tracking-widest">📚 Data Bookshelf</span>
+                    <span class="text-xs md:text-sm font-black text-slate-800 uppercase tracking-widest">📚 Data Bookshelf</span>
                     <span id="file-count-badge" class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0 Files</span>
                 </div>
                 <button onclick="toggleBookshelf()" id="shelf-arrow" class="transition-transform duration-300 cursor-pointer p-2 hover:bg-slate-100 rounded-full outline-none">▼</button>
             </div>
 
-            <div class="px-8 pb-4">
+            <div class="px-4 md:px-8 pb-4">
                 <div class="flex flex-wrap items-center justify-start gap-2 pt-2 border-t border-slate-50">
                     <div id="company-tabs" class="flex flex-wrap gap-2 items-center">
                         <button class="category-btn bg-slate-100 text-slate-400 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase shadow-sm cursor-wait animate-pulse">Syncing Database...</button>
@@ -22,8 +22,8 @@ const initBookshelfUI = () => {
             </div>
             
             <div id="shelf-content">
-                <div class="px-8 pb-8 pt-2">
-                    <div id="drop-zone" class="bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-[2rem] p-8 mb-6 flex flex-col items-center justify-center transition-all group relative">
+                <div class="px-4 md:px-8 pb-6 md:pb-8 pt-2">
+                    <div id="drop-zone" class="bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-8 mb-6 flex flex-col items-center justify-center transition-all group relative">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Target Profile: <span id="active-category-name" class="text-emerald-600 font-black">All</span></p>
                         <div class="text-center group-hover:scale-105 transition-transform pointer-events-none">
                             <div class="text-2xl mb-2 opacity-40">📥</div>
@@ -34,7 +34,7 @@ const initBookshelfUI = () => {
                             <input type="file" id="file-upload" class="hidden" onchange="window.handleFileUpload(event)">
                         </label>
                     </div>
-                    <div id="bookshelf-grid" class="flex flex-col gap-3"></div>
+                    <div id="bookshelf-grid" class="flex flex-row overflow-x-auto md:flex-col md:overflow-visible gap-3 pb-4 md:pb-0 snap-x custom-scrollbar" style="-webkit-overflow-scrolling: touch;"></div>
                 </div>
             </div>
         </div>
@@ -56,7 +56,8 @@ window.renderFileCards = (files) => {
         const colorClass = window.getCategoryColor(categoryTag);
         
         const card = document.createElement('div');
-        card.className = "bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-100 shadow-sm relative group hover:border-emerald-300 transition-all";
+        // CHANGED: Fixed width for mobile sliding, auto width for desktop
+        card.className = "bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-100 shadow-sm relative group hover:border-emerald-300 transition-all shrink-0 w-[280px] md:w-auto snap-start";
         card.innerHTML = `
             <div class="flex items-center gap-4 flex-1 min-w-0">
                 <div class="text-3xl opacity-80">📄</div>
