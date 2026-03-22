@@ -27,14 +27,100 @@ const initPocket = async () => {
 
     const trigger = document.createElement('div');
     trigger.id = 'pocket-trigger';
-    trigger.className = 'hidden fixed bottom-6 right-6 w-14 h-14 bg-emerald-900 text-white rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer z-[9999] hover:scale-110 transition-all border border-emerald-400';
+    trigger.className = 'hidden fixed bottom-6 right-6 w-14 h-14 bg-emerald-900 text-white rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer z-[9999] hover:scale-110 transition-all border border-emerald-400 touch-none';
     
     trigger.innerHTML = `
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-0.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         <div id="pocket-count" class="absolute -top-1 -right-1 bg-red-500 text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">0</div>
     `;
-    trigger.onclick = window.togglePocket;
+    
     document.body.appendChild(trigger);
+
+    // --- NEW: DRAGGABLE TRIGGER LOGIC ---
+    let isDraggingTrigger = false;
+    let triggerHasMoved = false;
+    let dragStartX, dragStartY, initialLeft, initialTop;
+
+    const startTriggerDrag = (e) => {
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+        
+        dragStartX = clientX;
+        dragStartY = clientY;
+        
+        const rect = trigger.getBoundingClientRect();
+        
+        // Convert bottom/right positioning to top/left for smooth dragging math
+        if (!trigger.style.top || !trigger.style.left) {
+            trigger.style.top = rect.top + 'px';
+            trigger.style.left = rect.left + 'px';
+            trigger.style.bottom = 'auto';
+            trigger.style.right = 'auto';
+        }
+        
+        initialLeft = parseFloat(trigger.style.left);
+        initialTop = parseFloat(trigger.style.top);
+        
+        isDraggingTrigger = true;
+        triggerHasMoved = false;
+        trigger.style.transition = 'none'; // Disable hover pop so it sticks to finger perfectly
+    };
+
+    const moveTriggerDrag = (e) => {
+        if (!isDraggingTrigger) return;
+        
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+        
+        const dx = clientX - dragStartX;
+        const dy = clientY - dragStartY;
+        
+        // If moved more than 5px, it's a drag, not a click
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+            triggerHasMoved = true;
+            if (e.cancelable) e.preventDefault(); // Stop mobile screen from scrolling while dragging
+        }
+        
+        let newLeft = initialLeft + dx;
+        let newTop = initialTop + dy;
+        
+        // Keep it safely within the screen bounds
+        const triggerSize = 56; // 14rem = 56px
+        if (newLeft < 10) newLeft = 10;
+        if (newTop < 10) newTop = 10;
+        if (newLeft > window.innerWidth - triggerSize - 10) newLeft = window.innerWidth - triggerSize - 10;
+        if (newTop > window.innerHeight - triggerSize - 10) newTop = window.innerHeight - triggerSize - 10;
+        
+        trigger.style.left = newLeft + 'px';
+        trigger.style.top = newTop + 'px';
+    };
+
+    const stopTriggerDrag = () => {
+        if (!isDraggingTrigger) return;
+        isDraggingTrigger = false;
+        trigger.style.transition = 'all 0.3s ease'; // Restore smooth hover effects
+    };
+
+    // Mouse events
+    trigger.addEventListener('mousedown', startTriggerDrag);
+    document.addEventListener('mousemove', moveTriggerDrag, { passive: false });
+    document.addEventListener('mouseup', stopTriggerDrag);
+
+    // Touch events for Phone/iPad
+    trigger.addEventListener('touchstart', startTriggerDrag, { passive: false });
+    document.addEventListener('touchmove', moveTriggerDrag, { passive: false });
+    document.addEventListener('touchend', stopTriggerDrag);
+
+    // Smart Click: Only toggle the pocket if the user didn't just drag it
+    trigger.onclick = (e) => {
+        if (triggerHasMoved) {
+            e.preventDefault();
+            triggerHasMoved = false;
+            return;
+        }
+        window.togglePocket();
+    };
+    // -------------------------------------
 
     if (window._supabase) {
         const { data } = await window._supabase.auth.getSession();
@@ -45,7 +131,6 @@ const initPocket = async () => {
     panel.id = 'pocket-panel';
     panel.className = 'fixed bottom-24 right-6 w-[450px] max-h-[75vh] min-w-[350px] min-h-[400px] bg-white rounded-[2rem] shadow-2xl border border-slate-200 z-[9999] flex flex-col hidden transition-all duration-300 overflow-hidden';
     
-    // RESTORED: Preview and Download buttons are back!
     panel.innerHTML = `
         <div id="tl-resize" class="absolute top-0 left-0 w-8 h-8 cursor-nwse-resize z-[10000] bg-indigo-500/80 backdrop-blur-md rounded-br-full opacity-0 hover:opacity-100 transition-opacity flex items-start justify-start pt-1 pl-1" title="Drag to resize window" onmousedown="window.startResize(event)">
             <span class="text-white text-[10px] transform -rotate-45 block leading-none">↔</span>
@@ -270,8 +355,6 @@ window.updatePocketUI = () => {
             const isFullWidth = slot && slot.colSpan === 2;
             const colClass = isFullWidth ? 'col-span-2' : 'col-span-1';
             const aspectStyle = isFullWidth ? 'aspect-ratio: 2.75 / 1;' : 'aspect-ratio: 4 / 3;';
-            
-            // EXACT UI CANVAS SIZES
             const canvasWidth = isFullWidth ? 1600 : 800; 
             const canvasHeight = isFullWidth ? 582 : 600;
             
@@ -458,15 +541,10 @@ window.generatePDF = function(action) {
     tempDiv.style.zIndex = '999998'; 
     tempDiv.className = 'font-sans text-slate-800'; 
 
-    // PERFECT WYSIWYG MATH FIX 
     const content = window.pocketSlots.map((slot, idx) => {
         const isFullWidth = slot && slot.colSpan === 2;
-        
-        // Exact pixel sizes based on a 1024px container with a 24px gap.
         const boxWidth = isFullWidth ? 944 : 460; 
         const boxHeight = isFullWidth ? (944 / 2.75) : (460 * 3 / 4); 
-        
-        // EXACT Canvas dimensions used by the UI (This is what broke it last time!)
         const canvasWidth = isFullWidth ? 1600 : 800; 
         const printBaseScale = boxWidth / canvasWidth;
 
@@ -550,7 +628,6 @@ window.generatePDF = function(action) {
                 if (btn) { btn.innerText = btn.dataset.originalText; btn.disabled = false; }
             });
         } else {
-            // Re-enabled the true 'bloburl' preview to pop up in a new tab!
             html2pdf().set(opt).from(elementToCapture).outputPdf('bloburl').then(url => {
                 window.open(url, '_blank');
                 document.body.removeChild(overlay);
