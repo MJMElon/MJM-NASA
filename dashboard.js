@@ -1,4 +1,4 @@
-// Split key to avoid GitHub deletion
+// Splitting the key so GitHub security bots don't auto-delete it!
 const keyPart1 = 'AIzaSyBUAjnwms'; 
 const keyPart2 = 'PXpBFyqi6Y1lpaEyyn99SE0fM';
 const GEMINI_API_KEY = keyPart1 + keyPart2;
@@ -293,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const loadingId = 'loading-' + Date.now();
         
+        // CHANGED: Added an animated spinner next to "Processing Data"
         chatBox.innerHTML += `
             <div id="${loadingId}" class="bg-white p-4 md:p-5 rounded-2xl rounded-tl-none border border-slate-200 max-w-[95%] md:max-w-[85%] shadow-sm mb-4 transition-all">
                 <div class="flex justify-between items-center text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-3">
@@ -300,25 +301,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> 
                         <span>Initializing Uplink...</span>
                     </span>
-                    <span id="${loadingId}-time" class="text-slate-400 bg-slate-100 px-2 py-1 rounded-md hidden md:inline-block">EST: 30s</span>
+                    <span id="${loadingId}-time" class="text-slate-400 bg-slate-100 px-2 py-1 rounded-md hidden md:inline-block">EST: 35s</span>
                 </div>
                 <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200 relative">
                     <div id="${loadingId}-bar" class="absolute top-0 left-0 bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
                 </div>
                 <div class="mt-2 flex justify-between items-center text-[9px] font-bold text-slate-400">
-                    <span class="uppercase tracking-widest">Processing Data</span>
+                    <span class="uppercase tracking-widest flex items-center gap-1.5">
+                        <svg class="w-3 h-3 animate-spin text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Processing Data
+                    </span>
                     <span id="${loadingId}-pct" class="text-emerald-700 font-black">0%</span>
                 </div>
             </div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        let estTotal = 30; // Increased expected time for mobile buffer
+        // CHANGED: Math.exp formula so the loading bar slows down smoothly and never abruptly gets stuck at 95%
         const startT = Date.now();
         const progInterval = setInterval(() => {
             const elapsed = (Date.now() - startT) / 1000;
-            let pct = (elapsed / estTotal) * 95; 
+            
+            // Asymptotic curve: Approaches 95% slowly based on time
+            let pct = 95 * (1 - Math.exp(-elapsed / 15)); 
             if (pct > 95) pct = 95;
-            let timeLeft = Math.max(1, Math.ceil(estTotal - elapsed));
+            
+            let timeLeft = Math.max(1, Math.ceil(35 - elapsed));
             
             const barEl = document.getElementById(`${loadingId}-bar`);
             const pctEl = document.getElementById(`${loadingId}-pct`);
@@ -342,10 +349,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isVisualRequest) {
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Architecting Visuals...`;
-                parts.push({ text: `System: You are Elon, MJM-AI analyst. Build visual widgets. CRITICAL RULES: 1. You MUST separate EVERY SINGLE distinct chart, graph, or metric with the exact delimiter "||WIDGET||". 1 Metric/Chart = 1 Sticker. 2. NO <script> tags, Chart.js, or external JS libraries allowed. 3. Draw all complex charts using ONLY pure HTML, Tailwind CSS, and inline SVG paths. Make sure containers have concrete heights. User Request: ${userText}` });
+                parts.push({ text: `System: You are Elon, MJM-AI analyst. Build visual widgets. CRITICAL RULES: 1. You MUST separate EVERY SINGLE distinct chart, graph, or metric with the exact delimiter "||WIDGET||". 1 Metric/Chart = 1 Sticker. 2. NO <script> tags, Chart.js, or external JS libraries allowed. 3. Draw all complex charts using ONLY pure HTML, Tailwind CSS, and inline SVG paths. 4. NEVER invent or hallucinate data; ONLY use the exact data found explicitly in the attached files. User Request: ${userText}` });
             } else if (hasFiles) {
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Analyzing Data Files...`;
-                parts.push({ text: `System: You are Elon, MJM-AI analyst. You have been provided with data files from the user's bookshelf. ALWAYS read and use these files to answer the user's question first. If the answer is not in the files, use your general knowledge. Structure your response cleanly using Markdown format (bolding, headers). User Request: ${userText}` });
+                parts.push({ text: `System: You are Elon, MJM-AI analyst. You have been provided with data files specifically filtered by the user. CRITICAL RULE: You must ONLY analyze and extract data for the specific estates/companies present in these attached files. DO NOT invent, hallucinate, or pull external data to fill in blanks for other estates. If the user asks about estates not in these files, explicitly state that you are only viewing the currently filtered selection. Structure your response cleanly using Markdown format. User Request: ${userText}` });
             } else {
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Elon is thinking...`;
                 parts.push({ text: `System: You are Elon, MJM-AI operations chatbot. Structure your response cleanly using Markdown format. User Request: ${userText}` });
@@ -371,7 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // --- NEW: AUTO-RETRY ENGINE FOR MOBILE BROWSER TIMEOUTS ---
             let resData = null;
             let retries = 3;
             
@@ -388,16 +394,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     resData = await response.json();
                     if (resData.error) throw new Error(resData.error.message);
-                    break; // If successful, exit the retry loop
+                    break; 
                     
                 } catch (error) {
-                    if (error.name === 'AbortError') throw error; // Don't retry if the user manually cancelled
-                    if (i === retries - 1) throw error; // If this was the last retry, throw the final error
+                    if (error.name === 'AbortError') throw error; 
+                    if (i === retries - 1) throw error; 
                     console.warn(`Connection dropped. Retrying (${i+1}/${retries})...`, error);
-                    await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds before retrying
+                    await new Promise(r => setTimeout(r, 2000)); 
                 }
             }
-            // ---------------------------------------------------------
 
             clearInterval(progInterval);
 
