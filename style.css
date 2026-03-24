@@ -8,19 +8,17 @@ body {
     margin: 0;
 }
 
-/* The MJM Background Pattern */
+/* The MJM Background Pattern - Clean Dot Grid */
 .bg-pattern {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: -2;
-    opacity: 0.08;
+    background-image: radial-gradient(rgba(16, 185, 129, 0.25) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
     pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 10c0 5-5 10-5 10s5 5 5 10c0-5 5-10 5-10s-5-5-5-10z' fill='%231b4332'/%3E%3Ccircle cx='50' cy='50' r='6' fill='%2310b981'/%3E%3Cpath d='M60 15l4 8h-8z' fill='%231b4332'/%3E%3C/svg%3E");
-    background-size: 120px 120px;
-    animation: moveBg 100s linear infinite;
 }
 
-/* --- New Fibre Optics Data Center Sparks --- */
+/* --- New Fibre Optics Data Center Sparks (Moving Background Lights) --- */
 .fibre-optics {
     position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
 }
@@ -51,11 +49,6 @@ body {
     animation: sparkV 10s infinite linear 0.5s;
 }
 
-@keyframes moveBg {
-    from { background-position: 0 0; }
-    to { background-position: 1000px 1000px; }
-}
-
 @keyframes sparkH {
     0% { left: -200px; opacity: 0; box-shadow: 0 0 0 transparent; }
     10% { opacity: 1; box-shadow: 0 0 12px #10b981; }
@@ -68,6 +61,43 @@ body {
     10% { opacity: 1; box-shadow: 0 0 12px #10b981; }
     90% { opacity: 1; box-shadow: 0 0 12px #10b981; }
     100% { top: 100vh; opacity: 0; }
+}
+
+/* --- Lightning Strike & AI Explosion Animation from Nursery --- */
+@keyframes lightning-strike {
+    0% { transform: translate(-180px, -20px) scale(0.5) rotate(-45deg); opacity: 0; }
+    2% { opacity: 1; filter: drop-shadow(0 0 10px #10b981) brightness(2); }
+    4% { transform: translate(-120px, 30px) scale(1.2) rotate(20deg); opacity: 0; }
+    6% { opacity: 1; filter: drop-shadow(0 0 15px #10b981) brightness(2.5); }
+    8% { transform: translate(-60px, -30px) scale(0.8) rotate(-10deg); opacity: 0; }
+    10% { opacity: 1; filter: drop-shadow(0 0 15px #10b981) brightness(2.5); }
+    12% { transform: translate(0px, 20px) scale(1.4) rotate(45deg); opacity: 0; }
+    14% { opacity: 1; filter: drop-shadow(0 0 20px #34d399) brightness(3); }
+    16% { transform: translate(110px, 0px) scale(2.5) rotate(90deg); opacity: 1; filter: drop-shadow(0 0 40px #fff) brightness(4); } 
+    18% { transform: translate(110px, 0px) scale(3.5); opacity: 0; } 
+    100% { opacity: 0; }
+}
+
+@keyframes ai-box-explosion {
+    0%, 14% { opacity: 0.4; transform: scale(1); filter: brightness(1); }
+    16% { opacity: 1; transform: scale(1.3); filter: brightness(2); background-color: #34d399; }
+    25%, 100% { opacity: 0.4; transform: scale(1); filter: brightness(1); background-color: #34d399; }
+}
+
+.lightning-spark { 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    margin-top: -12px; 
+    margin-left: -12px; 
+    color: #10b981; 
+    animation: lightning-strike 3s linear infinite; 
+    z-index: 30; 
+    pointer-events: none; 
+}
+
+.ai-explosion-glow { 
+    animation: ai-box-explosion 3s linear infinite; 
 }
 
 /* Glassmorphism Panel Effect */
@@ -110,7 +140,7 @@ body {
 }
 
 #shelf-content.open {
-    max-height: 2000px; /* High enough for many files */
+    max-height: 2000px;
     opacity: 1;
     padding-bottom: 2rem;
 }
@@ -120,42 +150,27 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Used when a tab is selected */
 .active-tab {
-    background-color: #059669 !important; /* Emerald 600 */
+    background-color: #059669 !important; 
     color: white !important;
     box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
 }
 
 /* --- Drag & Drop Visual States --- */
 #drop-zone.drag-over {
-    border-color: #10b981; /* Emerald 500 */
+    border-color: #10b981; 
     background-color: rgba(16, 185, 129, 0.05);
     transform: scale(1.01);
 }
 
 /* Chatbox Scrollbar Customization */
-#chat-box::-webkit-scrollbar {
-    width: 5px;
-}
-
-#chat-box::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-#chat-box::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-}
-
-#chat-box::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
+#chat-box::-webkit-scrollbar { width: 5px; }
+#chat-box::-webkit-scrollbar-track { background: transparent; }
+#chat-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+#chat-box::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* File Card Animations */
-#bookshelf-grid div {
-    animation: fadeIn 0.4s ease forwards;
-}
+#bookshelf-grid div { animation: fadeIn 0.4s ease forwards; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -182,7 +197,6 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* Hide slider scrollbar on mobile for cleaner swiping */
 @media (max-width: 768px) {
     .custom-scrollbar::-webkit-scrollbar { display: none; }
 }
