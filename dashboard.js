@@ -1,7 +1,5 @@
-// Splitting the key so GitHub security bots don't auto-delete it!
-const keyPart1 = 'AIzaSyBUAjnwms'; 
-const keyPart2 = 'PXpBFyqi6Y1lpaEyyn99SE0fM';
-const GEMINI_API_KEY = keyPart1 + keyPart2;
+// AI requests go through the `ask-claude` Supabase Edge Function,
+// which holds ANTHROPIC_API_KEY server-side. No client-side key needed.
 
 // Global State
 window.customTabs = []; 
@@ -344,20 +342,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const isVisualRequest = textLower.match(/(dashboard|chart|visual|graph|draw|generate|picture|metric)/);
             const hasFiles = window.currentFilesForAI && window.currentFilesForAI.length > 0;
 
-            let parts = [];
             const statusEl = document.getElementById(`${loadingId}-status`);
+            let mode = 'chat';
 
             if (isVisualRequest) {
+                mode = 'visual';
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Architecting Visuals...`;
-                parts.push({ text: `System: You are Elon, MJM-AI analyst. Build visual widgets. CRITICAL RULES: 1. You MUST separate EVERY SINGLE distinct chart, graph, or metric with the exact delimiter "||WIDGET||". 1 Metric/Chart = 1 Sticker. 2. NO <script> tags, Chart.js, or external JS libraries allowed. 3. Draw all complex charts using ONLY pure HTML, Tailwind CSS, and inline SVG paths. 4. NEVER invent or hallucinate data; ONLY use the exact data found explicitly in the attached files. User Request: ${userText}` });
             } else if (hasFiles) {
+                mode = 'files';
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Analyzing Data Files...`;
-                parts.push({ text: `System: You are Elon, MJM-AI analyst. You have been provided with data files specifically filtered by the user. CRITICAL RULE: You must ONLY analyze and extract data for the specific estates/companies present in these attached files. DO NOT invent, hallucinate, or pull external data to fill in blanks for other estates. If the user asks about estates not in these files, explicitly state that you are only viewing the currently filtered selection. Structure your response cleanly using Markdown format. User Request: ${userText}` });
             } else {
                 if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Elon is thinking...`;
-                parts.push({ text: `System: You are Elon, MJM-AI operations chatbot. Structure your response cleanly using Markdown format. User Request: ${userText}` });
             }
 
+            let files = [];
             if (hasFiles || isVisualRequest) {
                 const filePromises = window.currentFilesForAI.map(async (fileObj) => {
                     const { data, error } = await window._supabase.storage.from('operation-reports').download(fileObj.name);
@@ -367,47 +365,47 @@ document.addEventListener('DOMContentLoaded', () => {
                             rd.onloadend = () => r(rd.result.split(',')[1]);
                             rd.readAsDataURL(data);
                         });
-                        return { inline_data: { mime_type: data.type || "image/jpeg", data: b64 } };
+                        return { mime_type: data.type || "image/jpeg", data: b64 };
                     }
                     return null;
                 });
-
-                const downloadedFiles = await Promise.all(filePromises);
-                downloadedFiles.forEach(filePart => {
-                    if (filePart) parts.push(filePart);
-                });
+                files = (await Promise.all(filePromises)).filter(Boolean);
             }
 
             let resData = null;
             let retries = 3;
-            
+
             for (let i = 0; i < retries; i++) {
                 try {
                     if (i > 0 && statusEl) statusEl.innerHTML = `<span class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span> Retrying Network Connection...`;
-                    
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${GEMINI_API_KEY}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: parts }], tools: [{ google_search: {} }] }),
-                        signal: currentAbortController.signal 
+
+                    const { data, error } = await window._supabase.functions.invoke('ask-claude', {
+                        body: { userText, mode, files }
                     });
-                    
-                    resData = await response.json();
-                    if (resData.error) throw new Error(resData.error.message);
-                    break; 
-                    
+
+                    if (currentAbortController.signal.aborted) {
+                        const abortErr = new Error('Aborted');
+                        abortErr.name = 'AbortError';
+                        throw abortErr;
+                    }
+                    if (error) throw new Error(error.message || 'Edge function error');
+                    if (data && data.error) throw new Error(data.error);
+
+                    resData = data;
+                    break;
+
                 } catch (error) {
-                    if (error.name === 'AbortError') throw error; 
-                    if (i === retries - 1) throw error; 
+                    if (error.name === 'AbortError') throw error;
+                    if (i === retries - 1) throw error;
                     console.warn(`Connection dropped. Retrying (${i+1}/${retries})...`, error);
-                    await new Promise(r => setTimeout(r, 2000)); 
+                    await new Promise(r => setTimeout(r, 2000));
                 }
             }
 
             clearInterval(progInterval);
 
-            if (resData && resData.candidates && resData.candidates[0].content) {
-                let aiResponse = resData.candidates[0].content.parts[0].text;
+            if (resData && resData.text) {
+                let aiResponse = resData.text;
                 aiResponse = aiResponse.replace(/```html/gi, '').replace(/```/g, '').trim();
                 
                 if (isVisualRequest) {
